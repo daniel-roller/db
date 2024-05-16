@@ -57,13 +57,20 @@
                   // 登入成功
                   $_SESSION['user_id'] = $result["id"];
                   $_SESSION['username'] = $result["username"];
+                  $_SESSION['role'] = $result["role"];
+                  
+                  
 
                   // 設置 cookie
                   setcookie("user_id", $result["id"], time() + (86400 * 30), "/");
                   setcookie("username", $result["username"], time() + (86400 * 30), "/");
 
                   // 跳轉至商店頁面
-                  header("Location: shop.php");
+                  if($_SESSION['role'] == "admin"){
+                     header('Location: index.php');
+                  } else {
+                     header('Location: shop.php'); 
+                  }
                   exit();
                } else {
                   // 密碼錯誤
@@ -123,7 +130,7 @@
       </div>
       <!-- header section end -->
       <!-- contact section start -->
-      <!-- <div class="contact_section layout_padding">
+      <div class="contact_section layout_padding">
          <div class="container">
             <div class="row">
                   <div class="col-md-6">
@@ -143,7 +150,7 @@
                   </div>
             </div>
          </div>
-      </div> -->
+      </div> 
       <div class="copyright_section">
          <div class="container">
             <div class="social_icon">
@@ -157,7 +164,7 @@
             <p class="copyright_text">2020 All Rights Reserved. Design by Free html Templates</p>
          </div>
       </div>
-      <!-- Javascript files-->
+      <--Javascript files-->
       <script src="js/jquery.min.js"></script>
       <script src="js/popper.min.js"></script>
       <script src="js/bootstrap.bundle.min.js"></script>
