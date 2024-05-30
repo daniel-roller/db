@@ -1,3 +1,6 @@
+<?php
+   session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
    <head>
@@ -32,12 +35,7 @@
 
 
       <?php
-         session_start();
-
-         // 引入資料庫連接
          include "database_connection.php";
-
-         // 處理登入表單提交
          if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $username = $_POST["username"];
             $password = $_POST["password"];
@@ -50,25 +48,19 @@
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($result) {
-               $hashed_password = $result["passwd"];
 
                // 驗證密碼
-               if ($password == $hashed_password) {
+               if ($password == $result['passwd']) {
                   // 登入成功
-                  $_SESSION['user_id'] = $result["id"];
+                  $_SESSION['user_id'] = $result["ID"];
                   $_SESSION['username'] = $result["username"];
                   $_SESSION['role'] = $result["role"];
                   
-                  
-
-                  // 設置 cookie
-                  setcookie("user_id", $result["id"], time() + (86400 * 30), "/");
-                  setcookie("username", $result["username"], time() + (86400 * 30), "/");
-
+               
                   // 跳轉至商店頁面
                   if($_SESSION['role'] == "admin"){
                      header('Location: index.php');
-                  } else {
+                  } elseif($_SESSION['role']=="user") {
                      header('Location: shop.php'); 
                   }
                   exit();
