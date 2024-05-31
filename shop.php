@@ -123,7 +123,7 @@ if (isset($_GET['logout'])) {
         $stmt->bindParam(":quantity", $quantity);
         $stmt->execute();
         }
-        echo "購買成功!";
+        // echo "購買成功!";
     ?>
     <div class="header">
         <div class="container">

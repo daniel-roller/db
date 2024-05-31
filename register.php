@@ -158,7 +158,6 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
                      <input type="text" class="email-bt" placeholder="你的姓名" name="name">
                      <input type="text" class="email-bt" placeholder="你的email" name="email">
                      <input type="text" class="email-bt" placeholder="你的手機" name="tel">
-                     <!-- <input type="text" class="email-bt" placeholder="你的生日(西元)" name="bd"> -->
                      <input type="text" class="email-bt" placeholder="使用者名稱" name="username">
                      <input type="text" class="email-bt" placeholder="請輸入密碼" name="passwd">
                      <input type="text" class="email-bt" placeholder="再次確認密碼" name="passwd1">
