@@ -1,17 +1,58 @@
 <?php
+include "database_connection.php"; // 引入資料庫連接檔案
+
 session_start();
 
-// // 檢查使用者是否已登錄，否則重定向到登入頁面
-// if (!isset($_SESSION['user_id'])) {
-//     header("Location: login.php");
-//     exit();
-// }
+// 檢查使用者是否已登錄，否則重定向到登入頁面
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php");
+    exit();
+}
 
 // 登出處理
 if (isset($_GET['logout'])) {
     session_destroy();
     header("Location: login.php");
     exit();
+}
+
+// 查詢商品資料
+$sql = "SELECT * FROM shop";
+$result = $db->query($sql);
+
+// 處理購買商品
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $productID = $_POST['productID'];
+    $quantity = $_POST['quantity'];
+    $user_id = $_SESSION['user_id'];
+
+    // 從 shop 資料表中獲取商品詳細信息
+    $stmt = $db->prepare("SELECT * FROM shop WHERE id = :productID");
+    $stmt->bindParam(":productID", $productID, PDO::PARAM_INT);
+    $stmt->execute();
+    $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($product) {
+        $productName = $product['productName'];
+        $price = $product['price'];
+        $image = $product['image'];
+        $description = $product['description'];
+
+        // 將商品資訊寫入 cart 資料表
+        $sql = "INSERT INTO cart (user_id, product_id, product_name, price, quantity, total) VALUES (:user_id, :product_id, :product_name, :price, :quantity, :total)";
+        $stmt = $cart_db->prepare($sql);
+        $stmt->bindParam(":user_id", $user_id);
+        $stmt->bindParam(":product_id", $productID);
+        $stmt->bindParam(":product_name", $productName);
+        $stmt->bindParam(":price", $price);
+        $stmt->bindParam(":quantity", $quantity);
+        $stmt->bindParam(":total", $price * $quantity);
+        $stmt->execute();
+
+        echo "商品已成功加入購物車。";
+    } else {
+        echo "商品資訊不完整,無法加入購物車。";
+    }
 }
 ?>
 
@@ -108,23 +149,6 @@ if (isset($_GET['logout'])) {
     </style>
 </head>
 <body>
-    <?php
-        // 處理購買商品
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $product_id = $_POST['product_id'];
-        $quantity = $_POST['quantity'];
-        $user_id = $_SESSION['user_id'];
-        
-
-        $sql = "INSERT INTO orders (user_id, product_id, quantity) VALUES (:userid, :product_id, :quantity)";
-        $stmt = $db->prepare($sql);
-        $stmt->bindParam(":userid", $user_id);
-        $stmt->bindParam(":product_id",$product_id);
-        $stmt->bindParam(":quantity", $quantity);
-        $stmt->execute();
-        }
-        // echo "購買成功!";
-    ?>
     <div class="header">
         <div class="container">
             <div class="username">
@@ -132,35 +156,36 @@ if (isset($_GET['logout'])) {
             </div>
             <div class="logout">
                 <a href="shop.php?logout=true">登出</a>
-            </div>  
+            </div>
         </div>
     </div>
+
     <div class="content">
         <h1>歡迎來到商店</h1>
         <div class="product-list">
-            <div class="product">
-                <div class="icon_1"><img src="images/bed.jpg"></div>
-                <h2>超好躺的床</h2>
-                <p>這是一個很棒的商品。</p>
-                <div class="price">$100</div>
-                <a href="cart.php" class="buy-button">購買</a>
-                
-            </div>
-            <div class="product">
-            <div class="icon_1"><img src="images/sofa.jpg"></div>
-                <h2>頂級沙發</h2>
-                <p>這是一個很棒的商品。</p>
-                <div class="price">$200</div>
-                <a href="cart.php" class="buy-button">購買</a>
-            </div>
-            <div class="product">
-            <div class="icon_1"><img src="images/chair.jpg"></div>
-                <h2>坐下去就起不來的椅子    </h2>
-                <p>這是一個很棒的商品。</p>
-                <div class="price">$300</div>
-                <a href="cart.php" class="buy-button">購買</a>
-            </div>
-            <!-- 添加更多商品 -->
+            <?php
+            // 顯示商品列表
+            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+                // 確保資料庫中存在需要的欄位
+                if (isset($row['id']) && isset($row['productName']) && isset($row['price']) && isset($row['quantity']) && isset($row['image'])) {
+                    ?>
+                    <div class="product">
+                        <div class="icon_1"><img src="<?php echo htmlspecialchars($row['image']); ?>" alt="Product Image"></div>
+                        <h2><?php echo htmlspecialchars($row['productName']); ?></h2>
+                        <p>剩餘數量: <?php echo htmlspecialchars($row['quantity']); ?></p>
+                        <div class="price">$<?php echo htmlspecialchars($row['price']); ?></div>
+                        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+                            <input type="hidden" name="productID" value="<?php echo $row['id']; ?>">
+                            <input type="number" name="quantity" value="1" min="1">
+                            <button type="submit" class="buy-button">加入購物車</button>
+                        </form>
+                    </div>
+                    <?php
+                } else {
+                    echo "<p>商品資料不完整</p>";
+                }
+            }
+            ?>
         </div>
     </div>
 </body>

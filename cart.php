@@ -45,8 +45,17 @@ if (isset($_POST['add_to_cart'])) {
     echo "商品已成功添加到購物車。";
 }
 
+// 處理移除商品操作
+if (isset($_GET['remove'])) {
+    $remove_index = $_GET['remove'];
+    unset($_SESSION['cart'][$remove_index]);
+    $_SESSION['cart'] = array_values($_SESSION['cart']);
+    echo "商品已從購物車中移除。";
+}
+
 // 顯示購物車中的商品
 $cart_items = isset($_SESSION['cart']) ? $_SESSION['cart'] : array();
+$total_price = 0;
 ?>
 
 <!DOCTYPE html>
@@ -69,8 +78,7 @@ $cart_items = isset($_SESSION['cart']) ? $_SESSION['cart'] : array();
         </thead>
         <tbody>
             <?php
-            $total_price = 0;
-            foreach ($cart_items as $item) {
+            foreach ($cart_items as $index => $item) {
                 $item_total = $item['price'] * $item['quantity'];
                 $total_price += $item_total;
                 echo "<tr>";
@@ -78,7 +86,7 @@ $cart_items = isset($_SESSION['cart']) ? $_SESSION['cart'] : array();
                 echo "<td>$" . number_format($item['price'], 2) . "</td>";
                 echo "<td>{$item['quantity']}</td>";
                 echo "<td>$" . number_format($item_total, 2) . "</td>";
-                echo "<td><a href='#'>移除</a></td>";
+                echo "<td><a href='cart.php?remove=$index'>移除</a></td>";
                 echo "</tr>";
             }
             ?>
