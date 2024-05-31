@@ -1,11 +1,11 @@
 <?php
 session_start();
 
-// 檢查使用者是否已登錄，否則重定向到登入頁面
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+// // 檢查使用者是否已登錄，否則重定向到登入頁面
+// if (!isset($_SESSION['user_id'])) {
+//     header("Location: login.php");
+//     exit();
+// }
 
 // 登出處理
 if (isset($_GET['logout'])) {
@@ -116,9 +116,11 @@ if (isset($_GET['logout'])) {
         $user_id = $_SESSION['user_id'];
         
 
-        $sql = "INSERT INTO orders (user_id, product_id, quantity) VALUES (, ?, ?)";
+        $sql = "INSERT INTO orders (user_id, product_id, quantity) VALUES (:userid, :product_id, :quantity)";
         $stmt = $db->prepare($sql);
-        $stmt->bind_param("iii", $user_id, $product_id, $quantity);
+        $stmt->bindParam(":userid", $user_id);
+        $stmt->bindParam(":product_id",$product_id);
+        $stmt->bindParam(":quantity", $quantity);
         $stmt->execute();
         }
         echo "購買成功!";

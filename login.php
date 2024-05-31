@@ -59,11 +59,13 @@
                
                   // 跳轉至商店頁面
                   if($_SESSION['role'] == "admin"){
-                     header('Location: index.php');
-                  } elseif($_SESSION['role']=="user") {
-                     header('Location: shop.php'); 
+                     header('Location: manageAccounts.php');
+                     exit();
+                  } elseif($_SESSION['role'] == "user") {
+                     header('Location: shop.php');
+                     exit(); 
                   }
-                  exit();
+                  
                } else {
                   // 密碼錯誤
                   $error_message = "帳號或密碼錯誤";
