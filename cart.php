@@ -1,11 +1,11 @@
 <?php
 session_start();
 
-// 檢查使用者是否已登錄，否則重定向到登入頁面
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+// // 檢查使用者是否已登錄，否則重定向到登入頁面
+// if (!isset($_SESSION['user_id'])) {
+//     header("Location: login.php");
+//     exit();
+// }
 
 // 處理添加商品到購物車
 if (isset($_POST['add_to_cart'])) {

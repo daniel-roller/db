@@ -24,7 +24,6 @@ $result = $db->query($sql);
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $productID = $_POST['productID'];
     $quantity = $_POST['quantity'];
-    $user_id = $_SESSION['user_id'];
 
     // 從 shop 資料表中獲取商品詳細信息
     $stmt = $db->prepare("SELECT * FROM shop WHERE id = :productID");
@@ -39,19 +38,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $description = $product['description'];
 
         // 將商品資訊寫入 cart 資料表
-        $sql = "INSERT INTO cart (user_id, product_id, product_name, price, quantity, total) VALUES (:user_id, :product_id, :product_name, :price, :quantity, :total)";
-        $stmt = $cart_db->prepare($sql);
-        $stmt->bindParam(":user_id", $user_id);
-        $stmt->bindParam(":product_id", $productID);
-        $stmt->bindParam(":product_name", $productName);
+        $sql = "INSERT INTO cart (productName, price, quantity, image, description) VALUES (:productName, :price, :quantity, :image, :description)";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(":productName", $productName);
         $stmt->bindParam(":price", $price);
         $stmt->bindParam(":quantity", $quantity);
-        $stmt->bindParam(":total", $price * $quantity);
+        $stmt->bindParam(":image", $image);
+        $stmt->bindParam(":description", $description);
         $stmt->execute();
 
         echo "商品已成功加入購物車。";
     } else {
-        echo "商品資訊不完整,無法加入購物車。";
+        echo "商品資訊不完整，無法加入購物車。";
     }
 }
 ?>
@@ -63,89 +61,93 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>商店</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f4f4f4;
-        }
-        .header {
-            background: #333;
-            color: white;
-            padding: 10px 0;
-            position: relative;
-        }
-        .header .container {
-            width: 90%;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header .container .username {
-            font-size: 16px;
-        }
-        .header .container .logout {
-            font-size: 16px;
-        }
-        .header .container .logout a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            background: #007bff;
-            border-radius: 4px;
-            transition: background 0.3s ease;
-        }
-        .header .container .logout a:hover {
-            background: #0056b3;
-        }
-        .content {
-            padding: 20px;
-            text-align: center;
-        }
-        .product-list {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .product {
-            background: white;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            width: 200px;
-            text-align: center;
-        }
-        .product img {
-            max-width: 100%;
-            border-radius: 8px;
-        }
-        .product h2 {
-            font-size: 18px;
-            margin: 10px 0;
-        }
-        .product p {
-            font-size: 16px;
-            color: #555;
-        }
-        .product .price {
-            font-size: 20px;
-            color: #000;
-            margin: 10px 0;
-        }
-        .product .buy-button {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background 0.3s ease;
-        }
-        .product .buy-button:hover {
-            background: #0056b3;
-        }
+    body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f4f4f4;
+    }
+    .header {
+        background: #333;
+        color: white;
+        padding: 10px 0;
+        position: relative;
+    }
+    .header .container {
+        width: 90%;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .header .container .username {
+        font-size: 16px;
+    }
+    .header .container .logout {
+        font-size: 16px;
+    }
+    .header .container .logout a {
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        background: #007bff;
+        border-radius: 4px;
+        transition: background 0.3s ease;
+    }
+    .header .container .logout a:hover {
+        background: #0056b3;
+    }
+    .content {
+        padding: 20px;
+        text-align: center;
+    }
+    .product-list {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .product {
+        background: white;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        width: 200px;
+        text-align: center;
+    }
+    .product img {
+        max-height: 150px;  /* Set the desired maximum height */
+        width: auto;        /* Maintain the aspect ratio */
+        display: block;
+        margin: 0 auto;
+        border-radius: 8px;
+    }
+    .product h2 {
+        font-size: 18px;
+        margin: 10px 0;
+    }
+    .product p {
+        font-size: 16px;
+        color: #555;
+    }
+    .product .price {
+        font-size: 20px;
+        color: #000;
+        margin: 10px 0;
+    }
+    .product .buy-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background 0.3s ease;
+        margin-top: 20px; 
+    }
+    .product .buy-button:hover {
+        background: #0056b3;
+    }
     </style>
 </head>
 <body>
@@ -155,8 +157,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?php echo "歡迎, " . htmlspecialchars($_SESSION['username']); ?>
             </div>
             <div class="logout">
+                <a href="cart.php">前往購物車</a>
+            </div>
+            <div class="logout">
                 <a href="shop.php?logout=true">登出</a>
             </div>
+
         </div>
     </div>
 
