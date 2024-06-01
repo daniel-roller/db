@@ -35,7 +35,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['remove_item'])) {
     exit();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -132,53 +131,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['remove_item'])) {
     }
 
     .content {
-            padding: 40px;
-            font-family: Arial, sans-serif;
-        }
+        padding: 40px;
+        font-family: Arial, sans-serif;
+    }
 
-        .cart-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 16px;
-        }
+    .cart-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 16px;
+        text-align: center; /* 新增這一行 */
+    }
 
-        .cart-table th,
-        .cart-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
+    .cart-table th,
+    .cart-table td {
+        padding: 12px;
+        text-align: center; /* 新增這一行 */
+        border-bottom: 1px solid #ddd;
+    }
 
-        .cart-table th {
-            background-color: #f5f5f5;
-        }
+    .cart-table th {
+        background-color: #f5f5f5;
+    }
 
-        .cart-table td img {
-            max-height: 80px;
-            width: auto;
-        }
+    .cart-table td img {
+        max-height: 80px;
+        width: auto;
+    }
 
-        .cart-table td .remove-button {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            text-decoration: none;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
+    .cart-table td .remove-button {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        text-decoration: none;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
 
-        .cart-table td .remove-button:hover {
-            background-color: #c82333;
-        }
+    .cart-table td .remove-button:hover {
+        background-color: #c82333;
+    }
 
-        .no-items {
-            text-align: center;
-            font-size: 18px;
-            color: #555;
-            margin-top: 30px;
-        }
+    .no-items {
+        text-align: center;
+        font-size: 18px;
+        color: #555;
+        margin-top: 30px;
+    }
     </style>
 </head>
 <body>
@@ -202,7 +202,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['remove_item'])) {
         <?php if (empty($cartItems)) : ?>
             <p>您的購物車是空的。</p>
         <?php else : ?>
-            <table>
+            <table class="cart-table">
                 <thead>
                     <tr>
                         <th>商品名稱</th>

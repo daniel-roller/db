@@ -30,15 +30,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute();
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // 將商品資訊插入到 cart 資料表
-    $stmt = $db->prepare("INSERT INTO cart (username, productName, price, quantity, image, description) VALUES (:username, :productName, :price, :quantity, :image, :description)");
+    // 檢查 cart 資料表中是否已經存在該商品
+    $stmt = $db->prepare("SELECT * FROM cart WHERE username = :username AND productName = :productName");
     $stmt->bindParam(":username", $_SESSION['username'], PDO::PARAM_STR);
     $stmt->bindParam(":productName", $product['productName'], PDO::PARAM_STR);
-    $stmt->bindParam(":price", $product['price'], PDO::PARAM_STR);
-    $stmt->bindParam(":quantity", $quantity, PDO::PARAM_INT);
-    $stmt->bindParam(":image", $product['image'], PDO::PARAM_STR);
-    $stmt->bindParam(":description", $product['description'], PDO::PARAM_STR);
     $stmt->execute();
+    $existingItem = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($existingItem) {
+        // 如果已經存在,則更新 quantity 欄位
+        $newQuantity = $existingItem['quantity'] + $quantity;
+        $stmt = $db->prepare("UPDATE cart SET quantity = :quantity WHERE id = :id");
+        $stmt->bindParam(":quantity", $newQuantity, PDO::PARAM_INT);
+        $stmt->bindParam(":id", $existingItem['id'], PDO::PARAM_INT);
+        $stmt->execute();
+    } else {
+        // 如果不存在,則插入新的資料列
+        $stmt = $db->prepare("INSERT INTO cart (username, productName, price, quantity, image, description) VALUES (:username, :productName, :price, :quantity, :image, :description)");
+        $stmt->bindParam(":username", $_SESSION['username'], PDO::PARAM_STR);
+        $stmt->bindParam(":productName", $product['productName'], PDO::PARAM_STR);
+        $stmt->bindParam(":price", $product['price'], PDO::PARAM_STR);
+        $stmt->bindParam(":quantity", $quantity, PDO::PARAM_INT);
+        $stmt->bindParam(":image", $product['image'], PDO::PARAM_STR);
+        $stmt->bindParam(":description", $product['description'], PDO::PARAM_STR);
+        $stmt->execute();
+    }
 
     // 重定向到購物車頁面
     header("Location: cart.php");
@@ -173,7 +189,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <h2><?php echo htmlspecialchars($row['productName']); ?></h2>
                         <p>剩餘數量: <?php echo htmlspecialchars($row['quantity']); ?></p>
                         <div class="price">$<?php echo htmlspecialchars($row['price']); ?></div>
-                        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+                        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" onsubmit="addToCart(event, this)">
                             <input type="hidden" name="productID" value="<?php echo $row['id']; ?>">
                             <input type="number" name="quantity" value="1" min="1">
                             <button type="submit" class="buy-button">加入購物車</button>
@@ -187,5 +203,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ?>
         </div>
     </div>
+    <script>
+        function addToCart(event, form) {
+            event.preventDefault(); // 阻止表單的默認提交行為
+
+            // 獲取表單數據
+            var productID = form.querySelector('input[name="productID"]').value;
+            var quantity = form.querySelector('input[name="quantity"]').value;
+
+            // 使用 AJAX 向 server 端發送請求
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'add_to_cart.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    // 根據伺服器端的響應顯示不同的提示消息
+                    if (xhr.responseText === "商品數量已更新") {
+                        alert('商品數量已更新!');
+                    } else {
+                        alert('商品已加入購物車!');
+                    }
+                }
+            };
+            xhr.send('productID=' + encodeURIComponent(productID) + '&quantity=' + encodeURIComponent(quantity));
+        }
+    </script>
+
+
 </body>
 </html>
