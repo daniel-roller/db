@@ -21,9 +21,25 @@ if (isset($_GET['logout'])) {
     exit();
 }
 
-// 查詢商品資料
-$sql = "SELECT * FROM shop";
-$result = $db->query($sql);
+// 每頁顯示的商品數量
+$itemsPerPage = 10;
+
+// 獲取當前頁碼
+$currentPage = isset($_GET['page']) ? $_GET['page'] : 1;
+
+// 計算總頁數
+$totalItems = $db->query("SELECT COUNT(*) FROM shop")->fetchColumn();
+$totalPages = ceil($totalItems / $itemsPerPage);
+
+// 計算當前頁面的起始偏移量
+$offset = ($currentPage - 1) * $itemsPerPage;
+
+// 根據當前頁碼查詢商品
+$stmt = $db->prepare("SELECT * FROM shop LIMIT :offset, :itemsPerPage");
+$stmt->bindParam(":offset", $offset, PDO::PARAM_INT);
+$stmt->bindParam(":itemsPerPage", $itemsPerPage, PDO::PARAM_INT);
+$stmt->execute();
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $productID = $_POST['productID'];
@@ -65,7 +81,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     header("Location: cart.php");
     exit();
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -75,6 +90,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>商店</title>
     <style>
+
+.pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .pagination a.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .pagination a:hover:not(.active) {
+            background-color: #f4f4f4;
+        }
     body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -162,6 +199,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     .product .buy-button:hover {
         background: #0056b3;
     }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .pagination a.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .pagination a:hover:not(.active) {
+            background-color: #f4f4f4;
+        }
     </style>
 </head>
 <body>
@@ -176,7 +234,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="logout">
                 <a href="shop.php?logout=true">登出</a>
             </div>
-
         </div>
     </div>
 
@@ -185,25 +242,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="product-list">
             <?php
             // 顯示商品列表
-            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-                // 確保資料庫中存在需要的欄位
-                if (isset($row['id']) && isset($row['productName']) && isset($row['price']) && isset($row['quantity']) && isset($row['image'])) {
-                    ?>
-                    <div class="product">
-                        <div class="icon_1"><img src="<?php echo htmlspecialchars($row['image']); ?>" alt="Product Image"></div>
-                        <h2><?php echo htmlspecialchars($row['productName']); ?></h2>
-                        <p>剩餘數量: <?php echo htmlspecialchars($row['quantity']); ?></p>
-                        <div class="price">$<?php echo htmlspecialchars($row['price']); ?></div>
-                        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" onsubmit="addToCart(event, this)">
-                            <input type="hidden" name="productID" value="<?php echo $row['id']; ?>">
-                            <input type="number" name="quantity" value="1" min="1">
-                            <button type="submit" class="buy-button">加入購物車</button>
-                        </form>
-                    </div>
-                    <?php
-                } else {
-                    echo "<p>商品資料不完整</p>";
-                }
+            foreach ($result as $row) {
+                ?>
+                <div class="product">
+                    <div class="icon_1"><img src="<?php echo htmlspecialchars($row['image']); ?>" alt="Product Image"></div>
+                    <h2><?php echo htmlspecialchars($row['productName']); ?></h2>
+                    <p>剩餘數量: <?php echo htmlspecialchars($row['quantity']); ?></p>
+                    <div class="price">$<?php echo htmlspecialchars($row['price']); ?></div>
+                    <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" onsubmit="addToCart(event, this)">
+                        <input type="hidden" name="productID" value="<?php echo $row['id']; ?>">
+                        <input type="number" name="quantity" value="1" min="1">
+                        <button type="submit" class="buy-button">加入購物車</button>
+                    </form>
+                </div>
+                <?php
+            }
+            ?>
+        </div>
+        <div class="pagination">
+            <?php
+            // 顯示分頁按鈕
+            for ($i = 1; $i <= $totalPages; $i++) {
+                $activeClass = ($currentPage == $i) ? 'active' : '';
+                echo "<a href='?page=$i' class='$activeClass'>$i</a>";
             }
             ?>
         </div>

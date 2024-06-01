@@ -43,7 +43,6 @@
         exit();
     }
 ?>
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -55,16 +54,14 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background: #f4f4f4;
         }
-
         .header {
-            background-color: #333;
+            background: #333;
             color: white;
             padding: 10px 0;
             position: relative;
         }
-
         .header .container {
             width: 90%;
             margin: 0 auto;
@@ -72,68 +69,66 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .header .container .username {
             font-size: 16px;
         }
-
+        .header .container .logout {
+            font-size: 16px;
+        }
         .header .container .logout a {
             color: white;
             text-decoration: none;
             padding: 10px 20px;
-            background-color: #007bff;
+            background: #007bff;
             border-radius: 4px;
-            transition: background-color 0.3s ease;
+            transition: background 0.3s ease;
         }
-
         .header .container .logout a:hover {
-            background-color: #0056b3;
+            background: #0056b3;
         }
-
         .content {
             padding: 20px;
+            text-align: center;
         }
-
+        .content button.insertUser {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+            cursor: pointer;
+        }
+        .content button.insertUser:hover {
+            background: #218838;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
         }
-
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
+        table th, table td {
+            padding: 12px;
+            border: 1px solid #ddd;
         }
-
-        th {
-            background-color: #f2f2f2;
+        table th {
+            background-color: #f5f5f5;
         }
-
-        .delete-button,
-        .reset-password-button {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #ff4d4d;
+        .delete-button {
+            background-color: #dc3545;
             color: white;
             border: none;
-            border-radius: 5px;
+            padding: 8px 16px;
+            text-decoration: none;
             cursor: pointer;
+            border-radius: 4px;
             transition: background-color 0.3s ease;
         }
-
-        .reset-password-button {
-            background-color: #0080FF;
-        }
-
-        .delete-button:hover,
-        .reset-password-button:hover {
-            background-color: #e60000;
-        }
-
-        .reset-password-button:hover {
-            background-color: #0056b3;
+        .delete-button:hover {
+            background-color: #c82333;
         }
     </style>
 </head>
@@ -153,6 +148,7 @@
     </div>
 
     <div class="content">
+        <button onclick="location.href='insertUser.php'" class="insertUser">新增使用者</button>
         <table>
             <thead>
                 <tr>
@@ -171,7 +167,6 @@
                         echo "<td>" . htmlspecialchars($user['role']) . "</td>";
                         echo "<td>" . htmlspecialchars($user['name']) . "</td>";
                         echo "<td>" . htmlspecialchars($user['username']) . "</td>";
-                        // echo "<td>" . htmlspecialchars($user['email']) . "</td>";
                         if ($user['role'] === "admin"){
                             echo "<td></td>";
                         } else {
