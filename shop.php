@@ -11,6 +11,11 @@ if (!isset($_SESSION['username'])) {
 
 // 登出處理
 if (isset($_GET['logout'])) {
+    // 從購物車中刪除該使用者的所有商品
+    $stmt = $db->prepare("DELETE FROM cart WHERE username = :username");
+    $stmt->bindParam(":username", $_SESSION['username'], PDO::PARAM_STR);
+    $stmt->execute();
+
     session_destroy();
     header("Location: login.php");
     exit();
