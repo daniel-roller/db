@@ -20,7 +20,6 @@ if (isset($_GET['logout'])) {
 $sql = "SELECT * FROM shop";
 $result = $db->query($sql);
 
-// 處理購買商品
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $productID = $_POST['productID'];
     $quantity = $_POST['quantity'];
@@ -31,27 +30,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute();
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($product) {
-        $productName = $product['productName'];
-        $price = $product['price'];
-        $image = $product['image'];
-        $description = $product['description'];
+    // 將商品資訊插入到 cart 資料表
+    $stmt = $db->prepare("INSERT INTO cart (username, productName, price, quantity, image, description) VALUES (:username, :productName, :price, :quantity, :image, :description)");
+    $stmt->bindParam(":username", $_SESSION['username'], PDO::PARAM_STR);
+    $stmt->bindParam(":productName", $product['productName'], PDO::PARAM_STR);
+    $stmt->bindParam(":price", $product['price'], PDO::PARAM_STR);
+    $stmt->bindParam(":quantity", $quantity, PDO::PARAM_INT);
+    $stmt->bindParam(":image", $product['image'], PDO::PARAM_STR);
+    $stmt->bindParam(":description", $product['description'], PDO::PARAM_STR);
+    $stmt->execute();
 
-        // 將商品資訊寫入 cart 資料表
-        $sql = "INSERT INTO cart (productName, price, quantity, image, description) VALUES (:productName, :price, :quantity, :image, :description)";
-        $stmt = $db->prepare($sql);
-        $stmt->bindParam(":productName", $productName);
-        $stmt->bindParam(":price", $price);
-        $stmt->bindParam(":quantity", $quantity);
-        $stmt->bindParam(":image", $image);
-        $stmt->bindParam(":description", $description);
-        $stmt->execute();
-
-        echo "商品已成功加入購物車。";
-    } else {
-        echo "商品資訊不完整，無法加入購物車。";
-    }
+    // 重定向到購物車頁面
+    header("Location: cart.php");
+    exit();
 }
+
 ?>
 
 <!DOCTYPE html>
