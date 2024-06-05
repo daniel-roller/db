@@ -4,7 +4,7 @@
 // 資料庫連接設置
 $host = "localhost:3306";
 $dbusername = "root";
-$dbpassword = "594212Daniel";
+$dbpassword = "root";
 $dbname = "database";
 
 try {

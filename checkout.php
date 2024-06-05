@@ -14,6 +14,42 @@ $totalAmount = 0;
 foreach ($cartItems as $item) {
     $totalAmount += $item['price'] * $item['quantity'];
 }
+
+// 處理下單請求
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        // 開始交易
+        $db->beginTransaction();
+
+        // 插入每一個購物車商品到 purchase 表
+        foreach ($cartItems as $item) {
+            $insertSql = "INSERT INTO purchase (username, productName, price, quantity, total)
+                          VALUES (:username, :productName, :price, :quantity, :total)";
+            $insertStmt = $db->prepare($insertSql);
+            $insertStmt->bindParam(":username", $item['username'], PDO::PARAM_STR);
+            $insertStmt->bindParam(":productName", $item['productName'], PDO::PARAM_STR);
+            $insertStmt->bindParam(":price", $item['price'], PDO::PARAM_STR);
+            $insertStmt->bindParam(":quantity", $item['quantity'], PDO::PARAM_INT);
+            $total = $item['price'] * $item['quantity'];
+            $insertStmt->bindParam(":total", $total, PDO::PARAM_STR);
+            $insertStmt->execute();
+        }
+
+        // 刪除購物車中的商品
+        $deleteSql = "DELETE FROM cart WHERE username = :username";
+        $deleteStmt = $db->prepare($deleteSql);
+        $deleteStmt->bindParam(":username", $_SESSION['username'], PDO::PARAM_STR);
+        $deleteStmt->execute();
+
+        // 提交交易
+        $db->commit();
+        $orderSuccess = true;
+    } catch (Exception $e) {
+        // 回滾交易
+        $db->rollBack();
+        echo "結帳失敗: " . $e->getMessage();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -214,52 +250,10 @@ foreach ($cartItems as $item) {
 
     </style>
     <script>
-        function updateCartItem(event, form) {
-            event.preventDefault(); // 阻止表單的默認提交行為
-
-            var itemID = form.querySelector('input[name="itemID"]').value;
-            var newQuantity = form.querySelector('input[name="quantity"]').value;
-
-            // 使用 AJAX 向 server 端發送請求
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', 'update_cart.php', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                    // 更新成功後,顯示提示消息
-                    alert('商品數量已更新!');
-                    location.reload(); // 重新載入頁面以更新購物車資訊
-                }
-            };
-            xhr.send('itemID=' + encodeURIComponent(itemID) + '&quantity=' + encodeURIComponent(newQuantity));
+        function placeOrder() {
+            document.getElementById('order-form').submit();
         }
-
-    function updateCartItem(event, form) {
-        event.preventDefault(); // 阻止表單的默認提交行為
-
-        var itemID = form.querySelector('input[name="itemID"]').value;
-        var newQuantity = form.querySelector('input[name="quantity"]').value;
-
-        // 使用 AJAX 向 server 端發送請求
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', 'update_cart.php', true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                // 更新成功後,顯示提示消息
-                alert('商品數量已更新!');
-                location.reload(); // 重新載入頁面以更新購物車資訊
-            }
-        };
-        xhr.send('itemID=' + encodeURIComponent(itemID) + '&quantity=' + encodeURIComponent(newQuantity));
-    }
-
-    function placeOrder() {
-        // 顯示提示消息
-        document.getElementById('order-confirmation').style.display = 'block';
-    }
-</script>
-
+    </script>
 </head>
 <body>
     <div class="header">
@@ -277,31 +271,32 @@ foreach ($cartItems as $item) {
     </div>
 
     <div class="content">
-    <h1>結帳</h1>
-    <div class="checkout-list">
-        <?php
-        if (count($cartItems) > 0) {
-            echo '<table class="checkout-table">';
-            echo '<tr><th>商品名稱</th><th>數量</th><th>價格</th></tr>';
-            foreach ($cartItems as $item) {
-                echo '<tr>';
-                echo '<td>' . htmlspecialchars($item['productName']) . '</td>';
-                echo '<td>' . htmlspecialchars($item['quantity']) . '</td>';
-                echo '<td>$' . htmlspecialchars($item['price']) . '</td>';
-                echo '</tr>';
+        <h1>結帳</h1>
+        <div class="checkout-list">
+            <?php
+            if (count($cartItems) > 0) {
+                echo '<form id="order-form" method="POST">';
+                echo '<table class="checkout-table">';
+                echo '<tr><th>商品名稱</th><th>數量</th><th>價格</th></tr>';
+                foreach ($cartItems as $item) {
+                    echo '<tr>';
+                    echo '<td>' . htmlspecialchars($item['productName']) . '</td>';
+                    echo '<td>' . htmlspecialchars($item['quantity']) . '</td>';
+                    echo '<td>$' . htmlspecialchars($item['price']) . '</td>';
+                    echo '</tr>';
+                }
+                echo '</table>';
+                echo '<div class="total-amount">總金額: $' . number_format($totalAmount, 2) . '</div>';
+                echo '<button type="button" class="place-order-button" onclick="placeOrder()">下單</button>';
+                echo '</form>';
+                if (isset($orderSuccess) && $orderSuccess) {
+                    echo '<div id="order-confirmation" style="margin-top: 20px; font-size: 18px; color: green;">已成功下單！</div>';
+                }
+            } else {
+                echo '<p>購物車是空的</p>';
             }
-            echo '</table>';
-            echo '<div class="total-amount">總金額: $' . number_format($totalAmount, 2) . '</div>';
-            echo '<button class="place-order-button" onclick="placeOrder()">下單</button>';
-            echo '<div id="order-confirmation" style="display:none; margin-top: 20px; font-size: 18px; color: green;">已成功下單！</div>';
-        } else {
-            echo '<p>購物車是空的</p>';
-        }
-        ?>
+            ?>
+        </div>
     </div>
-</div>
-
-</div>
-
 </body>
 </html>
