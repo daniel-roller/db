@@ -232,6 +232,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <a href="cart.php">前往購物車</a>
             </div>
             <div class="logout">
+                <a href="add_to_shop.php">上架商品</a>
+            </div>
+            <div class="logout">
                 <a href="shop.php?logout=true">登出</a>
             </div>
         </div>
@@ -258,6 +261,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?php
             }
             ?>
+        <div class="add-product">
+            <h2>新增您的商品</h2>
+            <form method="post" action="add_to_shop.php">
+                <label for="productName">商品名稱:</label>
+                <input type="text" name="productName" id="productName" required>
+                <label for="price">價格:</label>
+                <input type="number" name="price" id="price" step="1" required>
+                <label for="quantity">數量:</label>
+                <label for="image">商品圖片 (URL):</label>
+                <input type="text" name="image" id="image" required>
+                <label for="description">商品描述:</label>
+                <textarea name="description" id="description" required></textarea>
+                <button type="submit">新增商品</button>
+            </form>
+        </div>
+
         </div>
         <div class="pagination">
             <?php

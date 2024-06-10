@@ -168,16 +168,20 @@
                         echo "<td>" . htmlspecialchars($user['role']) . "</td>";
                         echo "<td>" . htmlspecialchars($user['name']) . "</td>";
                         echo "<td>" . htmlspecialchars($user['username']) . "</td>";
-                        if ($user['role'] === "admin"){
+                        if ($user['role'] === "admin") {
                             echo "<td></td>";
                         } else {
-                            echo "<td><form action=\"manageAccounts.php\" method=\"post\" onsubmit=\"return confirmDelete('" . htmlspecialchars($user['username']) . "');\">";
-                            echo "<input type=\"hidden\" name=\"deleteid\" value=\"" . htmlspecialchars($user['id']) . "\">";
-                            echo "<button type=\"submit\" name=\"remove_user\" value=\"true\" class=\"delete-button\">刪除使用者</button>";
-                            echo "</form></td>";
+                            echo "<td>
+                                  <a href=\"changePassword.php?userid=" . htmlspecialchars($user['id']) . "\" class=\"delete-button\">修改密碼</a>
+                                  <form action=\"manageAccounts.php\" method=\"post\" onsubmit=\"return confirmDelete('" . htmlspecialchars($user['username']) . "');\">
+                                      <input type=\"hidden\" name=\"deleteid\" value=\"" . htmlspecialchars($user['id']) . "\">
+                                      <button type=\"submit\" name=\"remove_user\" value=\"true\" class=\"delete-button\">刪除使用者</button>
+                                  </form>
+                                  </td>";
                         }
                         echo "</tr>";
                     }
+                    
                 ?>
             </tbody>
         </table>
