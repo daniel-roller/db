@@ -1,86 +1,69 @@
-<style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
+<?php
+// 連接資料庫
+include "database_connection.php";
 
-        .header {
-            background-color: #333;
-            color: white;
-            padding: 10px 0;
-            position: relative;
-        }
+// 處理表單提交
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $account = $_POST['account'];
+    $email = $_POST['email'];
+    $tel = $_POST['tel'];
+    $newPassword = $_POST['newPassword'];
+    $confirmPassword = $_POST['confirmPassword'];
 
-        .header .container {
-            width: 90%;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    // 查詢用戶是否存在
+    $stmt = $db->prepare("SELECT * FROM users WHERE username = :username AND email = :email AND tel = :tel");
+    $stmt->bindParam(':username', $account, PDO::PARAM_STR);
+    $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+    $stmt->bindParam(':tel', $tel, PDO::PARAM_STR);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        .header .container .username {
-            font-size: 16px;
+    if ($user) {
+        // 驗證新密碼與確認密碼是否一致
+        if ($newPassword === $confirmPassword) {
+            // 更新密碼
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $db->prepare("UPDATE users SET passwd = :passwd WHERE id = :userId");
+            $stmt->bindParam(':passwd', $hashedPassword, PDO::PARAM_STR);
+            $stmt->bindParam(':userId', $user['id'], PDO::PARAM_INT);
+            if ($stmt->execute()) {
+                echo "密碼已成功重設!";
+            } else {
+                echo "重設密碼失敗.";
+            }
+        } else {
+            echo "新密碼與確認密碼不一致.";
         }
+    } else {
+        echo "找不到與該帳號、電子郵件地址和電話號碼相關的帳戶.";
+    }
+}
+?>
 
-        .header .container .logout a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            background-color: #007bff;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-
-        .header .container .logout a:hover {
-            background-color: #0056b3;
-        }
-
-        .content {
-            padding: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        }
-
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        .delete-button,
-        .reset-password-button {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .reset-password-button {
-            background-color: #0080FF;
-        }
-
-        .delete-button:hover,
-        .reset-password-button:hover {
-            background-color: #e60000;
-        }
-
-        .reset-password-button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 您之前提供的 HTML 頭部 -->
+</head>
+<body>
+    <div class="contact_section layout_padding">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h1 class="contact_text">重設密碼</h1>
+                    <div class="mail_sectin">
+                        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+                            <input type="text" class="email-bt" placeholder="帳號" name="account" required>
+                            <input type="email" class="email-bt" placeholder="電子郵件" name="email" required>
+                            <input type="tel" class="email-bt" placeholder="電話號碼" name="tel" required>
+                            <input type="password" class="email-bt" placeholder="新密碼" name="newPassword" required>
+                            <input type="password" class="email-bt" placeholder="確認新密碼" name="confirmPassword" required>
+                            <div class="send_bt"><button type="submit">重設密碼</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
